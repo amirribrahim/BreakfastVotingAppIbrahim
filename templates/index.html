@@ -186,7 +186,7 @@
                 });
         });
     </script>
-    <script>
+   <script>
     document.addEventListener('DOMContentLoaded', function() {
         var customRadio = document.getElementById('custom');
         var customInput = document.getElementById('custom-breakfast');
@@ -203,7 +203,7 @@
             radio.addEventListener('change', toggleCustomInput);
         });
 
-        // Modify the existing form submission code
+        // Single form submission event listener
         document.getElementById('breakfast-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const form = e.target;
@@ -234,7 +234,56 @@
             });
         });
 
-        // ... rest of your existing JavaScript ...
+        function displayResults(votes) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<h2>جميع الأصوات</h2>';
+            votes.forEach((vote, index) => {
+                resultsDiv.innerHTML += `
+                    <div>
+                        <h3>التصويت ${index + 1}</h3>
+                        <p>المصوت: ${vote.name}</p>
+                        <p>الفطور: ${vote.breakfast}</p>
+                        <p>الوقت: ${vote.time}</p>
+                        <p>الحضور: ${vote.attendance}</p>
+                    </div>
+                    <hr>
+                `;
+            });
+            resultsDiv.style.display = 'block';
+        }
+
+        document.getElementById('reset-votes').addEventListener('click', function() {
+            if (confirm('هل أنت متأكد أنك تريد إعادة تعيين جميع الأصوات؟')) {
+                fetch('/reset', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    return fetch('/results');
+                })
+                .then(response => response.json())
+                .then(votes => {
+                    displayResults(votes);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('حدث خطأ أثناء إعادة تعيين الأصوات. يرجى التحقق من وحدة التحكم والمحاولة مرة أخرى.');
+                });
+            }
+        });
+
+        // Load existing votes when the page loads
+        fetch('/results')
+            .then(response => response.json())
+            .then(votes => {
+                if (votes.length > 0) {
+                    displayResults(votes);
+                }
+            });
     });
 </script>
 </body>
