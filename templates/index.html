@@ -188,28 +188,30 @@
     </script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var customRadio = document.getElementById('custom');
-        var customInput = document.getElementById('custom-breakfast');
-        var form = document.getElementById('breakfast-form');
+        function setupCustomInput() {
+            var customRadio = document.getElementById('custom');
+            var customInput = document.getElementById('custom-breakfast');
 
-        function toggleCustomInput() {
-            customInput.disabled = !customRadio.checked;
-            if (customRadio.checked) {
-                customInput.focus();
+            function toggleCustomInput() {
+                customInput.disabled = !customRadio.checked;
+                if (customRadio.checked) {
+                    customInput.focus();
+                }
             }
+
+            customRadio.addEventListener('change', toggleCustomInput);
+            document.querySelectorAll('input[name="breakfast"]').forEach(function(radio) {
+                radio.addEventListener('change', toggleCustomInput);
+            });
+
+            // Initial toggle
+            toggleCustomInput();
         }
 
-        customRadio.addEventListener('change', toggleCustomInput);
-        document.querySelectorAll('input[name="breakfast"]').forEach(function(radio) {
-            radio.addEventListener('change', toggleCustomInput);
-        });
+        setupCustomInput();
 
-        // Remove any existing event listeners
-        var newForm = form.cloneNode(true);
-        form.parentNode.replaceChild(newForm, form);
-        form = newForm;
+        var form = document.getElementById('breakfast-form');
 
-        // Add the single event listener
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             let breakfastValue = form.breakfast.value;
