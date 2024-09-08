@@ -79,6 +79,9 @@
             <label for="sawda">سودة</label><br>
             <input type="radio" id="croissant" name="breakfast" value="كرواسون">
             <label for="croissant">كرواسون</label><br>
+            <input type="radio" id="custom" name="breakfast" value="custom">
+            <label for="custom">خيار مخصص:</label>
+            <input type="text" id="custom-breakfast" name="custom-breakfast" placeholder="أدخل خيار الفطور الخاص بك" disabled><br>
 
             <h2>اختر وقت الفطور:</h2>
             <select id="breakfast-time" name="breakfast-time" required>
@@ -183,5 +186,56 @@
                 });
         });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var customRadio = document.getElementById('custom');
+        var customInput = document.getElementById('custom-breakfast');
+
+        function toggleCustomInput() {
+            customInput.disabled = !customRadio.checked;
+            if (customRadio.checked) {
+                customInput.focus();
+            }
+        }
+
+        customRadio.addEventListener('change', toggleCustomInput);
+        document.querySelectorAll('input[name="breakfast"]').forEach(function(radio) {
+            radio.addEventListener('change', toggleCustomInput);
+        });
+
+        // Modify the existing form submission code
+        document.getElementById('breakfast-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            let breakfastValue = form.breakfast.value;
+            if (breakfastValue === 'custom') {
+                breakfastValue = document.getElementById('custom-breakfast').value;
+            }
+            const voteData = {
+                name: form.querySelector('#voter-name').value,
+                breakfast: breakfastValue,
+                time: form.querySelector('#breakfast-time').value,
+                attendance: form.attendance.checked ? 'سأحضر' : 'لن أحضر'
+            };
+
+            fetch('/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(voteData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayResults(data.all_votes);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+
+        // ... rest of your existing JavaScript ...
+    });
+</script>
 </body>
 </html>
