@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق التصويت على الفطور لعائلة إبراهيم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-image: url('https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            direction: rtl;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #ff6b6b;
+            text-align: center;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            margin-left: 10px;
+        }
+        button {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #e74c3c;
+        }
+        #results {
+            margin-top: 30px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>مرحباً بكم في تطبيق التصويت على الفطور لعائلة إبراهيم</h1>
+        <h2>لنقرر معًا فطور عائلتنا!</h2>
+        <form id="breakfast-form">
+            <h2>اسمك:</h2>
+            <input type="text" id="voter-name" name="voter-name" required>
+
+            <h2>اختر فطورك:</h2>
+            <input type="radio" id="manakish" name="breakfast" value="مناقيش" required>
+            <label for="manakish">مناقيش</label><br>
+            <input type="radio" id="foul" name="breakfast" value="فول وحمص ومسبحة">
+            <label for="foul">فول وحمص ومسبحة</label><br>
+            <input type="radio" id="frange" name="breakfast" value="فرنج ولَبنة وجبنة">
+            <label for="frange">فرنج ولَبنة وجبنة</label><br>
+            <input type="radio" id="mashatee7" name="breakfast" value="مشطَيح ولبنة وجبنة">
+            <label for="mashatee7">مشطَيح ولبنة وجبنة</label><br>
+            <input type="radio" id="sawda" name="breakfast" value="سودة">
+            <label for="sawda">سودة</label><br>
+
+            <h2>اختر وقت الفطور:</h2>
+            <select id="breakfast-time" name="breakfast-time" required>
+                <option value="">اختر وقتًا</option>
+                <option value="9:30">9:30 صباحًا</option>
+                <option value="10:00">10:00 صباحًا</option>
+                <option value="10:30">10:30 صباحًا</option>
+                <option value="11:00">11:00 صباحًا</option>
+            </select><br>
+
+            <input type="checkbox" id="attendance" name="attendance">
+            <label for="attendance">سأحضر</label><br>
+
+            <button type="submit">إرسال</button>
+        </form>
+
+        <div id="results" style="display:none;">
+            <h2>النتائج</h2>
+        </div>
+    </div>
+
+    <button id="reset-votes" style="margin-top: 20px; background-color: #e74c3c;">إعادة تعيين التصويت</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('breakfast-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = e.target;
+                const voteData = {
+                    name: form.querySelector('#voter-name').value,
+                    breakfast: form.breakfast.value,
+                    time: form.querySelector('#breakfast-time').value,
+                    attendance: form.attendance.checked ? 'سأحضر' : 'لن أحضر'
+                };
+
+                fetch('/vote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(voteData),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data.all_votes);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            });
+
+            function displayResults(votes) {
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '<h2>جميع الأصوات</h2>';
+                votes.forEach((vote, index) => {
+                    resultsDiv.innerHTML += `
+                        <div>
+                            <h3>التصويت ${index + 1}</h3>
+                            <p>المصوت: ${vote.name}</p>
+                            <p>الفطور: ${vote.breakfast}</p>
+                            <p>الوقت: ${vote.time}</p>
+                            <p>الحضور: ${vote.attendance}</p>
+                        </div>
+                        <hr>
+                    `;
+                });
+                resultsDiv.style.display = 'block';
+            }
+
+            document.getElementById('reset-votes').addEventListener('click', function() {
+                if (confirm('هل أنت متأكد أنك تريد إعادة تعيين جميع الأصوات؟')) {
+                    fetch('/reset', { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        return fetch('/results');
+                    })
+                    .then(response => response.json())
+                    .then(votes => {
+                        displayResults(votes);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('حدث خطأ أثناء إعادة تعيين الأصوات. يرجى التحقق من وحدة التحكم والمحاولة مرة أخرى.');
+                    });
+                }
+            });
+
+            // Load existing votes when the page loads
+            fetch('/results')
+                .then(response => response.json())
+                .then(votes => {
+                    if (votes.length > 0) {
+                        displayResults(votes);
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
